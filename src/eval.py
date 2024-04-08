@@ -69,7 +69,7 @@ def ngdc(query, relevant, qrels, queries):
         i += 1
     print(f"DCG: {dcg}, IdealDCG: {idealDCG}")
     
-    return dcg/idealDCG
+    return dcg/idealDCG if idealDCG > 0 else 0
 
 
 def eval(trecrunFile, qrelsFile, outputFile):
