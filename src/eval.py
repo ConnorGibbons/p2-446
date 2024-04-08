@@ -121,7 +121,7 @@ def eval(trecrunFile, qrelsFile, outputFile):
         f.write(f"MAP      all      {format(sum([stats[query][7] for query in stats])/len(stats),'.4f')}\n")
 
 
-    return
+    return stats
 
 
 
@@ -134,6 +134,21 @@ if __name__ == '__main__':
     runFile = sys.argv[1] if argv_len >= 2 else "msmarcosmall-bm25.trecrun"
     qrelsFile = sys.argv[2] if argv_len >= 3 else "msmarco.qrels"
     outputFile = sys.argv[3] if argv_len >= 4 else "my-msmarcosmall-bm25.eval"
+    allFilesFlag = sys.argv[4] if argv_len >= 5 else False
+    if allFilesFlag:
+        ql = eval("msmarcofull-ql.trecrun", "msmarco.qrels", "uselessBufferFile.eval")
+        bm25 = eval("msmarcofull-bm25.trecrun", "msmarco.qrels", "uselessBufferFile.eval")
+        dpr = eval("msmarcofull-dpr.trecrun", "msmarco.qrels", "uselessBufferFile.eval")
+        outFile = open("allModelsEval.csv", "w")
+        outFile.write("Query,QL,BM25,improv,DPR,improv\n")
+        queryDict = ql.keys()
+        for query in queryDict:
+            qlAP = ql[query][7]
+            bm25AP = bm25[query][7]
+            dprAP = dpr[query][7]
+            outFile.write(f"{query},{qlAP},{bm25AP},{(bm25AP-qlAP)/qlAP if qlAP > 0 else 0},{dprAP},{(dprAP-qlAP)/qlAP if qlAP > 0 else 0}\n")
+        outFile.write(f"all,{sum([ql[query][7] for query in queryDict])/len(queryDict)},{sum([bm25[query][7] for query in queryDict])/len(queryDict)},{(sum([bm25[query][7] for query in queryDict])/len(queryDict)-sum([ql[query][7] for query in queryDict])/len(queryDict))/(sum([ql[query][7] for query in queryDict])/len(queryDict))},{sum([dpr[query][7] for query in queryDict])/len(queryDict)},{(sum([dpr[query][7] for query in queryDict])/len(queryDict)-sum([ql[query][7] for query in queryDict])/len(queryDict))/(sum([ql[query][7] for query in queryDict])/len(queryDict))}\n")
 
-    eval(runFile, qrelsFile, outputFile)
+    else:
+        eval(runFile, qrelsFile, outputFile)
     
