@@ -26,14 +26,14 @@ def basicStats(query, relevant):
             if not firstRelevantRank:
                 firstRelevantRank = i
             numrelFound += 1
+            precisionVals.append(numrelFound/(i))
             if i < 11:
                 foundBefore10 += 1
-                precisionVals.append(foundBefore10/(i))
     recallAtTen = foundBefore10/len(relevant) if len(relevant) > 0 else 0
     precisionAtTen = foundBefore10/10.0
     F1AtTen = 2 * (precisionAtTen * recallAtTen) / (precisionAtTen + recallAtTen) if ((precisionAtTen > 0) and (recallAtTen > 0)) else 0
     recipRank = 1.0/firstRelevantRank if firstRelevantRank else 0
-    avgPrecision = sum(precisionVals)/len(relevant) if len(relevant) > 0 else 0
+    avgPrecision = sum(precisionVals)/len(relevant) if len(precisionVals) > 0 else 0
     return (numrelFound, recipRank, precisionAtTen, recallAtTen, F1AtTen, avgPrecision)
 
 def ngdc(query, relevant, qrels, queries):
@@ -67,7 +67,6 @@ def ngdc(query, relevant, qrels, queries):
             else:
                 dcg += qrels[queryID][doc['docid']]/math.log2(i)
         i += 1
-    print(f"DCG: {dcg}, IdealDCG: {idealDCG}")
     
     return dcg/idealDCG if idealDCG > 0 else 0
 
@@ -100,7 +99,6 @@ def eval(trecrunFile, qrelsFile, outputFile):
         discountedCumulative = ngdc(query, relevant, qrels, queries)
         stats[query] = [discountedCumulative] + [numRel] + list(queryStats)
     print(f"Evaluated {len(stats)} queries")
-    print(stats)
 
     # Writing to output
     with open(outputFile, 'w') as f:
